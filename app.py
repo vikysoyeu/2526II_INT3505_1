@@ -1,26 +1,27 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 import database
 
 app = Flask(__name__)
 
-# GET all users
 @app.route("/users", methods=["GET"])
 def get_users():
-    return jsonify(database.get_all_users())
+    response = make_response(jsonify(database.get_all_users()))
+    response.headers["Cache-Control"] = "public, max-age=60"
+    return response
 
 
-# GET one user
 @app.route("/users/<int:user_id>", methods=["GET"])
 def get_user(user_id):
     user = database.get_user(user_id)
 
     if user:
-        return jsonify(user)
+        response = make_response(jsonify(user))
+        response.headers["Cache-Control"] = "public, max-age=60"
+        return response
 
     return {"error": "User not found"}, 404
 
 
-# POST create user
 @app.route("/users", methods=["POST"])
 def create_user():
     data = request.json
@@ -35,7 +36,6 @@ def create_user():
     return jsonify(new_user)
 
 
-# DELETE user
 @app.route("/users/<int:user_id>", methods=["DELETE"])
 def delete_user(user_id):
 
